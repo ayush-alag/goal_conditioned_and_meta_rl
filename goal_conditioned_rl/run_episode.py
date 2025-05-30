@@ -31,6 +31,7 @@ def run_episode(
 
     # reset the environment to get the initial state
     state, goal_state = env.reset() # pylint: disable=unused-variable
+    goal_state = torch.from_numpy(goal_state.astype(np.float32)).unsqueeze(0)
 
     for _ in range(steps_per_episode):
 
@@ -41,7 +42,6 @@ def run_episode(
         # Hint: state and goal_state are 1d numpy arrays of size (N,). After being
         # combined, you should have a 1d numpy array of size (2*N,)
         state = torch.from_numpy(state.astype(np.float32)).unsqueeze(0)
-        goal_state = torch.from_numpy(goal_state.astype(np.float32)).unsqueeze(0)
         concat_state = torch.cat((state, goal_state), dim=1)
 
         # forward pass to find action
@@ -50,7 +50,7 @@ def run_episode(
         # Hint 2: Remember that Q Networks return an array with size equal to the action space
         # such that each value represents the estimated value for taking that action. You
         # want to GREEDILY select the action based on these estimated values.
-        with torch.no_grad:
+        with torch.no_grad():
             outputs = q_net(concat_state)
 
         greedy_action = torch.argmax(outputs, dim=1).item()
