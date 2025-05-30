@@ -48,7 +48,7 @@ def update_replay_buffer(
 
         if her_type == HERType.FINAL:
             # relabel episode based on final state in episode
-            # Hint: Make sure you utilize .copy() to copy numpy arrays whenever needed. 
+            # Hint: Make sure you utilize .copy() to copy numpy arrays whenever needed.
             pass
 
             # get final goal
@@ -69,7 +69,7 @@ def update_replay_buffer(
             # for every transition, add num_relabeled transitions to the buffer
 
             # get random future goal
-            # Hint 1: We are currently at step 'timestep' out of a total of 
+            # Hint 1: We are currently at step 'timestep' out of a total of
             # 'len(episode_experience)' steps during this episode.
             # Hint 2: You can use np.random.randint to get a random integer without
             # any additional imports.
@@ -158,6 +158,7 @@ def train(
         # loss at the end of each epoch
         losses = []
 
+        """ collect a bunch, add to replay buffer, then optimize a sample"""
         for _ in range(num_episodes):
             # collect data in the environment
             episode_experience, ep_reward, succeeded = run_episode.run_episode(

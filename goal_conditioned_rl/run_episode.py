@@ -40,6 +40,9 @@ def run_episode(
         # append goal state to input, and prepare for feeding to the q-network
         # Hint: state and goal_state are 1d numpy arrays of size (N,). After being
         # combined, you should have a 1d numpy array of size (2*N,)
+        state = torch.from_numpy(state.astype(np.float32)).unsqueeze(0)
+        goal_state = torch.from_numpy(goal_state.astype(np.float32)).unsqueeze(0)
+        concat_state = torch.cat((state, goal_state), dim=1)
 
         # forward pass to find action
         # Hint 1: Remember that you need to pass a torch tensor into your Q Network that
@@ -47,22 +50,34 @@ def run_episode(
         # Hint 2: Remember that Q Networks return an array with size equal to the action space
         # such that each value represents the estimated value for taking that action. You
         # want to GREEDILY select the action based on these estimated values.
+        with torch.no_grad:
+            outputs = q_net(concat_state)
+
+        greedy_action = torch.argmax(outputs, dim=1).item()
 
         # take action, use env.step
         # Hint: Remember that env.step is going to return a tuple
         # (next_state, reward_this_step, done, info) where info is a dict
+        (next_state, reward_this_step, done, info) = env.step(greedy_action)
 
         # add transition to episode_experience as a tuple of
         # (state, action, reward, next_state, goal)
+        episode_experience.append((state, greedy_action, reward_this_step, next_state, goal_state))
 
         # update episodic return
+        episodic_return += reward_this_step
 
         # update state
+        state = next_state
 
         # update succeeded bool from the info returned by env.step
         # Hint: Use the key 'successful_this_state' from the info dictionary
+        if info["successful_this_state"]:
+            succeeded = True
 
         # break the episode if done=True
+        if done:
+            break
 
         # ========================      END TODO       ========================
 
