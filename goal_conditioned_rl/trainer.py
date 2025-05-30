@@ -50,18 +50,18 @@ def update_replay_buffer(
             # relabel episode based on final state in episode
             # Hint: Make sure you utilize .copy() to copy numpy arrays whenever needed.
 
-            # get final goal
-            final_goal = episode_experience[-1][-1].copy()
+            # get final goal, which is the final state
+            final_goal = episode_experience[-1][3].copy()
 
             # compute new reward
             # Hint: You can use env_reward_func to compute this. This is
             # a passed in argument. Info for this variable can be found in
             # the function description Args section.
-            new_reward = env_reward_function((state, final_goal))
+            new_reward = env_reward_function(next_state, final_goal)
 
             # add to buffer
-            replay_buffer.add(np.append(state.copy(), final_goal),
-                              action.copy(),
+            replay_buffer.add(np.append(state.clone(), final_goal),
+                              action,
                               new_reward,
                               np.append(next_state.copy(), final_goal))
 
@@ -77,16 +77,19 @@ def update_replay_buffer(
             # 'len(episode_experience)' steps during this episode.
             # Hint 2: You can use np.random.randint to get a random integer without
             # any additional imports.
-            for _ in num_relabeled:
+            if timestep == len(episode_experience) - 1:
+                continue
+
+            for _ in range(num_relabeled):
                 future_timestep = np.random.randint(timestep + 1, len(episode_experience))
-                future_goal = episode_experience[future_timestep][-1].copy()
+                future_goal = episode_experience[future_timestep][3].copy()
 
                 # compute new reward
-                new_reward = env_reward_function((state, future_goal))
+                new_reward = env_reward_function(next_state, future_goal)
 
                 # add to replay buffer
-                replay_buffer.add(np.append(state.copy(), future_goal),
-                                  action.copy(),
+                replay_buffer.add(np.append(state.clone(), future_goal),
+                                  action,
                                   new_reward,
                                   np.append(next_state.copy(), future_goal))
 
@@ -94,17 +97,17 @@ def update_replay_buffer(
             # random: relabel episode based on a random state from the episode
 
             # for every transition, add num_relabeled transitions to the buffer
-            for _ in num_relabeled:
+            for _ in range(num_relabeled):
                 # get random goal
                 random_timestep = np.random.randint(0, len(episode_experience))
-                random_goal = episode_experience[random_timestep][-1].copy()
+                random_goal = episode_experience[random_timestep][3].copy()
 
                 # compute new reward
-                new_reward = env_reward_function((state, random_goal))
+                new_reward = env_reward_function(next_state, random_goal)
 
                 # add to replay buffer
-                replay_buffer.add(np.append(state.copy(), random_goal),
-                                  action.copy(),
+                replay_buffer.add(np.append(state.clone(), random_goal),
+                                  action,
                                   new_reward,
                                   np.append(next_state.copy(), random_goal))
 
