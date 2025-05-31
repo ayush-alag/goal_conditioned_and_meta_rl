@@ -168,11 +168,8 @@ class EncoderDecoder(Embedder, relabel.RewardLabeler):
         # ********************************************************
         # ******************* YOUR CODE HERE *********************
         # ********************************************************
-        print("HELLO!!!")
         stop_gradient_embeddings = id_embeddings.detach().unsqueeze(1)
-        print(all_decoder_embeddings.shape, stop_gradient_embeddings.shape)
-        decoder_context_loss = torch.norm(all_decoder_embeddings - stop_gradient_embeddings, p=2, dim=2)
-        print(decoder_context_loss.shape)
+        decoder_context_loss = torch.sum((all_decoder_embeddings - stop_gradient_embeddings) ** 2, dim = -1)
 
         decoder_context_loss = (
                 decoder_context_loss * mask).sum() / mask.sum()
@@ -255,10 +252,15 @@ class EncoderDecoder(Embedder, relabel.RewardLabeler):
         # Hint 2: id_embeddings is a tensor of size (batch_size, embed_dim) such that
         # id_embeddings[batch] represents z for that batch
         # Hint 3: Remember that since we parametrize q_omega(z | tau{:t}) as a gaussian,
-        # we have that log q_omega(z | tau_{:t}) = ||stop_gradient(z) - g(\tau^e_{:t})||_2^2 + C
+        # we have that log q_omega(z | tau_{:t}) = -||stop_gradient(z) - g(\tau^e_{:t})||_2^2 + C
         # such that C is constants independent of our weights we backprop on.
         # Hint 4: Reminder that we want to use stop_gradient(z). The torch.tensor.detach
         # function may be helpful.
+        stop_gradient_embeddings = id_embeddings.detach().unsqueeze(1)
+        distances = torch.sum((all_decoder_embeddings - stop_gradient_embeddings) ** 2, dim = -1)
+        log_q_omega = -distances
+        rewards = log_q_omega[:, 1:] - log_q_omega[:, :-1]
+
         #
         # The rewards are subsequently masked, to handle batches of episodes
         # with different lengths, but this is done for you, and you should not
