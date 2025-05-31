@@ -120,11 +120,11 @@ class EncoderDecoder(Embedder, relabel.RewardLabeler):
         return id_embeddings, all_decoder_embeddings, decoder_embeddings, mask
 
     def _compute_losses(
-            self, 
-            trajectories, 
-            id_embeddings, 
+            self,
+            trajectories,
+            id_embeddings,
             all_decoder_embeddings,
-            decoder_embeddings, 
+            decoder_embeddings,
             mask):
         # pylint: disable=unused-argument
         """Computes losses based on the return values of _compute_embeddings.
@@ -138,9 +138,9 @@ class EncoderDecoder(Embedder, relabel.RewardLabeler):
         # Unused variables
         del trajectories
         del decoder_embeddings
-        
+
         decoder_context_loss = None
-        
+
         # ********************************************************
         # ******************* YOUR CODE HERE *********************
         # ********************************************************
@@ -153,11 +153,11 @@ class EncoderDecoder(Embedder, relabel.RewardLabeler):
         #
         #   decoder_context_loss[batch][t] = ||g_omega(tau_{:t}) - z||^2_2
         #
-        # Hint 1: all_decoder_embeddings is a tensor of size (batch_size, episode_len+1, embed_dim) 
+        # Hint 1: all_decoder_embeddings is a tensor of size (batch_size, episode_len+1, embed_dim)
         # such that all_decoder_embeddings[batch][t] represents g_omega(tau_{:t}).
-        # Hint 2: id_embeddings is a tensor of size (batch_size, embed_dim) such that 
+        # Hint 2: id_embeddings is a tensor of size (batch_size, embed_dim) such that
         # id_embeddings[batch] represents z for that batch
-        # Hint 3: Reminder that we want to use stop_gradient(z). The torch.tensor.detach 
+        # Hint 3: Reminder that we want to use stop_gradient(z). The torch.tensor.detach
         # function may be helpful.
         #
         # You may not need to use all of the parameters passed to this function.
@@ -168,6 +168,11 @@ class EncoderDecoder(Embedder, relabel.RewardLabeler):
         # ********************************************************
         # ******************* YOUR CODE HERE *********************
         # ********************************************************
+        print("HELLO!!!")
+        stop_gradient_embeddings = id_embeddings.detach().unsqueeze(1)
+        print(all_decoder_embeddings.shape, stop_gradient_embeddings.shape)
+        decoder_context_loss = torch.norm(all_decoder_embeddings - stop_gradient_embeddings, p=2, dim=2)
+        print(decoder_context_loss.shape)
 
         decoder_context_loss = (
                 decoder_context_loss * mask).sum() / mask.sum()
@@ -228,7 +233,7 @@ class EncoderDecoder(Embedder, relabel.RewardLabeler):
 
         distances = None
         rewards = None
-        
+
         # ********************************************************
         # ******************* YOUR CODE HERE *********************
         # ********************************************************
@@ -245,14 +250,14 @@ class EncoderDecoder(Embedder, relabel.RewardLabeler):
         # Note that tau_{:t} at t = 0 is just s_t, though this is handled for
         # you.
         #
-        # Hint 1: all_decoder_embeddings is a tensor of size (batch_size, episode_len+1, embed_dim) 
+        # Hint 1: all_decoder_embeddings is a tensor of size (batch_size, episode_len+1, embed_dim)
         # such that all_decoder_embeddings[batch][t] represents g_omega(tau_{:t}).
-        # Hint 2: id_embeddings is a tensor of size (batch_size, embed_dim) such that 
+        # Hint 2: id_embeddings is a tensor of size (batch_size, embed_dim) such that
         # id_embeddings[batch] represents z for that batch
-        # Hint 3: Remember that since we parametrize q_omega(z | tau{:t}) as a gaussian, 
+        # Hint 3: Remember that since we parametrize q_omega(z | tau{:t}) as a gaussian,
         # we have that log q_omega(z | tau_{:t}) = ||stop_gradient(z) - g(\tau^e_{:t})||_2^2 + C
         # such that C is constants independent of our weights we backprop on.
-        # Hint 4: Reminder that we want to use stop_gradient(z). The torch.tensor.detach 
+        # Hint 4: Reminder that we want to use stop_gradient(z). The torch.tensor.detach
         # function may be helpful.
         #
         # The rewards are subsequently masked, to handle batches of episodes
@@ -266,7 +271,7 @@ class EncoderDecoder(Embedder, relabel.RewardLabeler):
         # ******************* YOUR CODE HERE *********************
         # ********************************************************
         return ((rewards - self._penalty) * mask[:, 1:]).detach(), distances
-    
+
 
 class ExploitationPolicyEmbedder(Embedder):
     """Embeds (s, i, \tau^e) where:
